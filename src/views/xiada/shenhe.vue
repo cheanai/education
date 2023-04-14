@@ -24,18 +24,19 @@
                 <el-table-column prop="tertiaryIndicators" label="三级指标"></el-table-column>
                 <el-table-column prop="taskVolume" label="任务量"></el-table-column>
                 <el-table-column prop="state" label="审核状态"></el-table-column>
-                <el-table-column label="操作" width="120px">
+                <el-table-column label="操作" width="220px">
                     <template slot-scope="scope">
-                        <el-select v-model="value" placeholder="请选择">
-                            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
-                            </el-option>
+                        <el-select v-model="valueArr[scope.row.id]" placeholder="请选择" style="width: 100px;" v-if="scope.row.state=='待审批'">
+                            <el-option label="审核通过" value="审核通过"></el-option>
+                            <el-option label="审核未通过" value="审核未通过"></el-option>
                         </el-select>
-                        <el-button type="primary" plain>主要按钮</el-button>
+                        <el-button type="primary" plain v-if="scope.row.state=='待审批'" @click="update(scope.row.id)">确认
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>
         </el-card>
-        
+
     </div>
 </template>
 <script>
@@ -46,24 +47,9 @@ export default {
     data() {
         return {
             input1: '',
-            value :"",
+            valueArr: [],
             //保存后端传来的数据
             userList: [],
-            //接口传参
-            /* queryInfo: {
-                 // 当前的页数
-                 pagenum: 1,
-                 // 当前每页显示多少条数据
-                 pagesize: 5
-         }, */
-            //获取当前用户信息用于编辑
-            options:[{
-					value: '审核通过',
-					label: '审核未通过',
-				}, {
-					value: '审核未通过',
-					label: '审核未通过',
-				}],
 
         }
     },
@@ -76,6 +62,7 @@ export default {
             axios.get("/selectTaskTable").then((response) => {
                 console.log(response.data)
                 this.userList = response.data;
+                this.valueArr = new Array(this.userList.length).fill('')
             }
             )
         },
@@ -92,12 +79,23 @@ export default {
             });
 
         },
+        update(id){
+            axios.get("/updateTaskTable", {
+                params: {
+                    id: id,
+                    state: this.valueArr[id]
+                }
+            }).then(()=>{
+                this.getUserList();
+            }
+            );
+        },
         //查找完后在重新渲染
         reGet() {
             this.getUserList()
 
         },
-        
+
 
     },
 }

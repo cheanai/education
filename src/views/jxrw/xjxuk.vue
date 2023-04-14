@@ -27,14 +27,20 @@
 				<el-table-column prop="instructorName" label="指导教师"></el-table-column>
 				<el-table-column prop="courseCount" label="选修课课时"></el-table-column>
 				<el-table-column prop="state" label="审核状态"></el-table-column>
-				<el-table-column label="操作" width="120px">
+				<el-table-column label="操作" width="220px">
 					<template slot-scope="scope">
 						<!-- 修改按钮 -->
-						<el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)">
+						<el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)" v-if="depart!= '发展规划处'">
 						</el-button>
 						<!-- 删除按钮 -->
-						<el-button type="danger" icon="el-icon-delete" size="mini" @click="removeUserById(scope.row.id)">
+						<el-button type="danger" icon="el-icon-delete" size="mini" @click="removeUserById(scope.row.id)" v-if="depart!= '发展规划处'">
 						</el-button>
+						<el-select v-model="valueArr[scope.row.id]" placeholder="请选择" style="width: 100px;" v-if="depart== '发展规划处'&&scope.row.state=='待审批'">
+                            <el-option label="审核通过" value="审核通过"></el-option>
+                            <el-option label="审核未通过" value="审核未通过"></el-option>
+                        </el-select>
+                        <el-button type="primary" plain v-if="depart == '发展规划处'&&scope.row.state=='待审批'" @click="update(scope.row.id)">确认
+                        </el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -92,6 +98,8 @@ export default {
 			input1: '',
 			//保存后端传来的数据
 			userList: [],
+			valueArr: [],
+			depart:"",
 			//接口传参
 			/* queryInfo: {
 				 // 当前的页数
@@ -148,20 +156,30 @@ export default {
 		}
 	},
 	created() {
+		this.depart=this.$store.state.message;
 		this.getUserList();
 	},
 	methods: {
 		// 获取后端表单数据
 		getUserList() {
-			axios.get("/selectCollegeSchoolLevelElectiveCourse", {
-				params: {
-					department: this.$store.state.message
+			if (this.$store.state.message == '发展规划处') {
+				axios.get("/selectAllCollegeSchoolLevelElectiveCourse").then((response) => {
+					console.log(response.data)
+					this.userList = response.data;
+					this.valueArr = new Array(this.userList.length).fill('')
 				}
-			}).then((response) => {
-				console.log(response.data)
-				this.userList = response.data;
+				)
+			} else {
+				axios.get("/selectCollegeSchoolLevelElectiveCourse", {
+					params: {
+						department: this.$store.state.message
+					}
+				}).then((response) => {
+					console.log(response.data)
+					this.userList = response.data;
+				}
+				)
 			}
-			)
 		},
 		//点击确定 添加新用户
 		add() {
