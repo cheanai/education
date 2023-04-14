@@ -214,6 +214,17 @@ export default {
 			// this.$refs.addFormRef.resetFields()
 
 		},
+		update(id){
+            axios.get("/updateCollegeCourseState", {
+                params: {
+                    id: id,
+                    state: this.valueArr[id]
+                }
+            }).then(()=>{
+                this.getUserList();
+            }
+            );
+        },
 		getSTime(val) {
 			this.addForm.time = val;
 			// console.log(val);
